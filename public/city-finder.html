@@ -1,0 +1,154 @@
+<html>
+
+<head>
+  <title>City Finder</title>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#cityfield").keyup(function() {
+        var url = "http://ec2-52-32-206-208.us-west-2.compute.amazonaws.com:3000/getcity?q=" + $("#cityfield").val();
+        $.getJSON(url, function(data) {
+            var everything;
+            everything = "<ul>";
+            $.each(data, function(i, item) {
+              everything += "<li> " + data[i].city;
+            });
+            everything += "</ul>";
+            $("#txtHint").html(everything);
+          })
+          .done(function() {
+            console.log('getJSON request succeeded!');
+          })
+          .fail(function(jqXHR, textStatus, errorThrown) {
+            console.log('getJSON request failed! ' + textStatus);
+            console.log("incoming " + jqXHR.responseText);
+          })
+          .always(function() {
+            console.log('getJSON request ended!');
+          })
+          .complete(function() {
+            console.log("complete");
+          });
+
+
+      });
+
+      $("#button").click(function(e) {
+        var value = $("#cityfield").val();
+        console.log(value);
+        $("#dispcity").text(value);
+        e.preventDefault();
+        var myurl = "https://api.wunderground.com/api/68659bc56f7ee448/geolookup/conditions/q/UT/";
+        myurl += value;
+        myurl += ".json";
+        console.log(myurl);
+        $.ajax({
+          url: myurl,
+          dataType: "jsonp",
+          success: function(parsed_json) {
+            var location = parsed_json['location']['city'];
+            var temp_string = parsed_json['current_observation']['temperature_string'];
+            var current_weather = parsed_json['current_observation']['weather'];
+            everything = "<ul>";
+            everything += "<li>Location: " + location;
+            everything += "<li>Temperature: " + temp_string;
+            everything += "<li>Weather: " + current_weather;
+            everything += "</ul>";
+            $("#weather").html(everything);
+          }
+        });
+
+        myurlwiki = "https://en.wikipedia.org/w/api.php";
+	myurlwiki += "?action=parse";
+	myurlwiki += "&page=";
+	myurlwiki += value;
+	myurlwiki += ",%20Utah"
+	myurlwiki += "&prop=text";
+	myurlwiki += "&section=0"
+	myurlwiki += "&format=json";
+        console.log(myurlwiki);
+        $.ajax({
+          url: myurlwiki,
+          dataType: "jsonp",
+          success: function(parsed_json) {
+            
+		var title = parsed_json['parse']['title'];
+		var page_id = parsed_json['parse']['pageid'];
+		everything+= "<ul>";
+		everything+="<li>Wiki Page Title: " + title;
+		everything+="<li>Wiki Page Id: " + page_id;
+		everything+="</ul>";
+		everything+=parsed_json['parse']['text']['*'];
+		$("#weather").html(everything);
+          }
+        });
+      });
+
+
+    });
+
+  </script>
+
+<script>
+FB.ui({
+  method: 'share',
+  href: 'https://developers.facebook.com/docs/',
+}, function(response){});
+</script>
+<meta property="fb:app_id"		content="1759627720932687"/> 
+<meta property="og:url"                content="http://ec2-52-32-206-208.us-west-2.compute.amazonaws.com/CS360/city-finder/city-finder.html" />
+<meta property="og:type"               content="website" />
+<meta property="og:title"              content="CityFinder" />
+<meta property="og:description"        content="Search for Weather in Your City" />
+<meta property="og:image"              content="http://ec2-52-32-206-208.us-west-2.compute.amazonaws.com/CS360/city-finder/fog.jpg" />
+
+</head>
+
+<body>
+ 
+
+ 
+  <script>
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId: '1759627720932687',
+        xfbml: true,
+        version: 'v2.5'
+      });
+    };
+
+    (function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) {
+        return;
+      }
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "//connect.facebook.net/en_US/sdk.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+  </script>
+ 
+<div
+  class="fb-like"
+  data-share="true"
+  data-width="450"
+  data-show-faces="true">
+</div>
+
+ <form>
+    Enter A Utah City:
+    <input type="text" id="cityfield" value="">
+    <br> Suggestion: <span id="txtHint">Empty</span>
+    <input id="button" type="submit" value="Submit">
+  </form>
+  <p>City</p>
+  <textarea id="dispcity">No City</textarea>
+  <p>Current Weather</p>
+  <div id="weather">No weather</div>
+
+</body>
+
+</html>
+
